@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Australia Bushfire Map</title>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: lightgray;
+    }
+
+    .vis-container {
+      width: 960px;
+      text-align: center;
+      margin-bottom: 24px;
+      border: 2px solid rgb(172, 172, 172);
+      padding: 24px;
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 9px gray;
+    }
+
+    h1 {
+      font-family: 'Arial', sans-serif;
+      font-size: 5em;
+      font-weight: bold;
+      margin-bottom: 40px;
+      color: black;
+    }
+
+    h2 {
+      font-family: 'Arial', sans-serif;
+      font-size: 32px;
+      font-weight: bold;
+      color: black;
+    }
+
+    li {
+      font-family: 'Arial', sans-serif;
+      font-size: 1.2em;
+      font-weight: bold;
+      text-align: left;
+      color: blue;
+    }
+
+    h1 span.black {
+      color: black;
+    }
+
+    h1 span.red {
+      color: darkred;
+    }
+
+    p {
+      font-family: 'Georgia', serif;
+      font-size: 1.2em;
+      line-height: 1.6;
+      padding: 15px;
+      background-color: #f8f8f8;
+      border-radius: 5px;
+    }
+
+    .vega-embed .vega-bind {
+      font-family: 'Georgia', serif;
+      margin-top: 10px;
+      font-size: 1.2em;
+    }
+
+  
+  </style>
+</head>
+
+<body>
+
+  <h1><span class="black">Australian</span> <span class="red">Bushfires</span></h1>
+
+  <div class="vis-container">
+    <p>
+      Bushfires pose a significant and recurring threat across Australia, especially during the dry season, which
+      typically spans the winter and spring months. This period is often marked by escalating fire risk due to
+      increasing temperatures and dry conditions, making vegetation more susceptible to ignition.
+    </p>
+  </div>
+
+
+  <div class="vis-container">
+    <div id="vis1"></div>
+    <p>
+      This map visualization focuses on August and September 2019, a critical timeframe capturing the transition from
+      winter to spring when fire weather conditions intensify. The data, collected from space, provides valuable
+      insights into the location and intensity of each fire, offering a comprehensive view of the spatial distribution
+      of these events. Brightness here is measured as channel 21/22 brightness temperature of the fire pixel measured in
+      Kelvin.
+    </p>
+  </div>
+
+  <div class="vis-container">
+    <div id="vis3"></div>
+    <div id="vis4"></div>
+    <p>
+      While the map visualization displays bushfire activity leading up to the summer season, these bar charts capture
+      the culmination of that activity during the peak summer months. Notably, New South Wales experienced the largest
+      total area affected by fires, aligning with the concentrated fire activity observed in the northern part of the
+      state during the spring. Note that Northern Territory is missing its data as the data source did not have them.
+      <br /><br />
+
+      Examining the impact of bushfires across Australian jurisdictions alongside the normalized data reveals a nuanced
+      picture. While New South Wales experienced the largest total area affected by fires, the Australian Capital
+      Territory emerges as having the
+      highest proportion of fire impact relative to its size. This highlights the severity of the fires in the ACT,
+      despite its smaller overall landmass. These findings underscore the importance of considering both raw fire area
+      and normalized figures when assessing bushfire impact.
+    </p>
+  </div>
+
+  <div class="vis-container">
+    <div id="vis2"></div>
+    <p>
+      Interestingly, there's a notable difference in bushfire occurrences between day and night. Daylight hours see a
+      significantly higher frequency of fires, likely due to the influence of sunlight, which further dries out
+      vegetation and increases its flammability. Both daytime and nighttime fire counts, however, show a distinct peak
+      around September 8th, suggesting the presence of specific weather conditions or other contributing factors that
+      triggered a surge in fire activity regardless of the time of day.
+    </p>
+  </div>
+
+  <div class="vis-container">
+    <h2>Sources</h2>
+    
+        <li><a href="https://www.kaggle.com/datasets/carlosparadis/fires-from-space-australia-and-new-zeland">source 1</a></li>
+        <li><a href="https://www.agriculture.gov.au/abares/forestsaustralia/forest-data-maps-and-tools/data-by-topic/fire">source 2</a></li>
+        <li><a href="https://www.ga.gov.au/scientific-topics/national-location-information/dimensions/area-of-australia-states-and-territories">source 3</a></li>
+    <p> created by Liuyijia Su</p>
+  </div>
+
+  <script type="text/javascript">
+    var mapSpec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": { "text": "Bushfires in Australia (2019 Aug-Sep)", "fontSize": 32, "padding": 10 },
+      "width": 920,
+      "height": 600,
+      "projection": {
+        "type": "mercator",
+        "center": [133, -28],
+        "scale": 750
+      },
+      "projection": {
+        "type": "mercator",
+        "center": { "expr": "center_state" },
+        "scale": { "expr": "zoom_level" }
+      },
+      "params": [
+        {
+          "name": "Brightness_Above",
+          "value": 300,
+          "bind": {
+            "input": "range",
+            "min": 300,
+            "max": 500,
+            "step": 1,
+            "name": "Minimum Brightness: "
+          },
+        },
+        {
+          "name": "center_state",
+          "value": [133, -28], // Default center
+          "bind": {
+            "input": "select",
+            "options": [
+              [133, -28],
+              [151.2093, -33.8688],
+              [144.9631, -37.8136],
+              [145.0000, -16.9200],
+              [138.6000, -34.9333],
+              [121.6250, -25.7328],
+              [147.3272, -42.8821],
+              [149.1300, -35.2809],
+              [133.8807, -20.3484]
+            ],
+            "labels": [
+              "Australia",
+              "New South Wales",
+              "Victoria",
+              "Queensland",
+              "South Australia",
+              "Western Australia",
+              "Tasmania",
+              "Australian Capital Territory",
+              "Northern Territory"],
+            "name": "Map Centre: "
+          }
+        },
+        {
+          "name": "zoom_level",
+          "value": 750,
+          "bind": {
+            "input": "range",
+            "min": 750,
+            "max": 3750,
+            "step": 150,
+            "name": "Zoom: "
+          }
+        },
+      ],
+      "layer": [
+        {
+          "data": {
+            "url": "australia.json",
+            "format": {
+              "type": "topojson",
+              "feature": "australia"
+            }
+          },
+          "mark": {
+            "type": "geoshape",
+            "fill": "white",
+            "stroke": "darkgrey",
+            "strokeWidth": 2
+          },
+          "encoding": {
+            "tooltip": [
+              { "field": "properties.NAME_1", "type": "nominal", "title": "State/Territory" }
+            ]
+          },
+        },
+        {
+          "data": {
+            "url": "fire.csv",
+            "format": { "type": "csv" }
+          },
+          "selection": {
+            "daynight": {
+              "type": "single",
+              "fields": ["daynight"],
+              "bind": {
+                "input": "select",
+                "options": [null, "D", "N"],
+                "labels": ["Both", "Day", "Night"],
+                "name": "Fires Count During Day/Night: "
+              }
+            }
+          },
+          "transform": [
+            {
+              "calculate": "datum.brightness < 330 ? '300-330' : datum.brightness < 360 ? '330-360' : '360+'",
+              "as": "brightness_level"
+            },
+            { "filter": { "selection": "daynight" } },
+            { "filter": "datum.brightness > Brightness_Above" },
+          ],
+
+          "mark": "circle",
+          "encoding": {
+            "longitude": { "field": "longitude", "type": "quantitative" },
+            "latitude": { "field": "latitude", "type": "quantitative" },
+            "size": { "value": 5 },
+            "color": {
+              "field": "brightness_level",
+              "type": "ordinal",
+              "scale": {
+                "domain": ["300-330", "330-360", "360+"],
+                "range": ["green", "orange", "red"]
+              },
+              "legend": { "title": "Brightness", "orient": "top-right" }
+            },
+            "opacity": {
+              "field": "brightness_level",
+              "type": "ordinal",
+              "scale": {
+                "domain": ["300-330", "330-360", "360+"],
+                "range": [0.5, 0.8, 1]
+              }
+            },
+            "tooltip": [
+              { "field": "latitude", "type": "quantitative", "title": "Latitude" },
+              { "field": "longitude", "type": "quantitative", "title": "Longitude" },
+              { "field": "brightness", "type": "quantitative", "title": "Brightness" },
+              { "field": "acq_date", "type": "temporal", "title": "Date" },
+              { "field": "acq_time", "type": "nominal", "title": "Time" }
+            ],
+          },
+        }
+      ],
+    };
+
+    var chartSpec = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": { "text": "Daily Bushfire Count", "fontSize": 32, "padding": 10 },
+      "width": 900,
+      "height": 300,
+      "data": {
+        "url": "fire.csv",
+        "format": { "type": "csv" }
+      },
+      "mark": {
+        "type": "line",
+        "color": "red",
+        "strokeWidth": 3
+      },
+      "encoding": {
+        "x": { "field": "acq_date", "type": "temporal", "title": "Date", "axis": { "format": "%d/%m", "tickCount": "week" } },
+        "y": { "aggregate": "count", "type": "quantitative", "title": "Number of Bushfires", "scale": { "domain": [0, 1400] } },
+        "tooltip": [
+          { "field": "acq_date", "type": "temporal", "title": "Date" },
+          { "field": "count", "type": "quantitative", "title": "Number of Bushfires" }
+        ]
+      },
+      "selection": {
+        "daynight": {
+          "type": "single",
+          "fields": ["daynight"],
+          "bind": {
+            "input": "select",
+            "options": [null, "D", "N"],
+            "labels": ["Both", "Day", "Night"],
+            "name": "Fires Count During Day/Night: "
+          }
+        }
+      },
+      "transform": [
+        { "filter": { "selection": "daynight" } }
+      ],
+    };
+
+    var barChartSpec1 = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": { "text": "Total Fire Area by Jurisdiction", "fontSize": 24, "padding": 10 },
+      "width": 800,
+      "height": 300,
+      "data": {
+        "url": "firebystate.csv",
+        "format": { "type": "csv" }
+      },
+      "mark": "bar",
+      "encoding": {
+        "y": { "field": "Jurisdiction", "type": "nominal", "sort": "-x", "title": "Jurisdiction" },
+        "x": { "field": "Fire_area", "type": "quantitative", "title": "Total Fire Area" },
+        "tooltip": [
+          { "field": "Jurisdiction", "type": "nominal" },
+          { "field": "Fire_area", "type": "quantitative" }
+        ]
+      }
+    };
+
+    var barChartSpec2 = {
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "title": { "text": "Proportion of Fire Area by Jurisdiction", "fontSize": 24, "padding": 10 },
+      "width": 800,
+      "height": 300,
+      "data": {
+        "values": [
+          { "Jurisdiction": "Australian Capital Territory", "Fire_area": 90, "TotalArea": 2358 },
+          { "Jurisdiction": "New South Wales", "Fire_area": 5682, "TotalArea": 801150 },
+          { "Jurisdiction": "Northern Territory", "Fire_area": 0, "TotalArea": 1347791 },
+          { "Jurisdiction": "Queensland", "Fire_area": 574, "TotalArea": 1729742 },
+          { "Jurisdiction": "South Australia", "Fire_area": 313, "TotalArea": 984321 },
+          { "Jurisdiction": "Tasmania", "Fire_area": 45, "TotalArea": 68401 },
+          { "Jurisdiction": "Victoria", "Fire_area": 1583, "TotalArea": 227444 },
+          { "Jurisdiction": "Western Australia", "Fire_area": 2044, "TotalArea": 2527013 }
+        ]
+      },
+      "transform": [
+        {
+          "calculate": "datum.Fire_area / (datum.TotalArea/100)", // convert km^2 to hectres
+          "as": "FireAreaProportion"
+        }
+      ],
+      "mark": "bar",
+      "encoding": {
+        "y": { "field": "Jurisdiction", "type": "nominal", "sort": "-x", "title": "Jurisdiction" },
+        "x": { "field": "FireAreaProportion", "type": "quantitative", "title": "Proportion of Fire Area" },
+        "tooltip": [
+          { "field": "Jurisdiction", "type": "nominal" },
+          { "field": "FireAreaProportion", "type": "quantitative", "format": ".3%" }
+        ]
+      }
+    };
+
+    vegaEmbed('#vis1', mapSpec);
+    vegaEmbed('#vis2', chartSpec);
+    vegaEmbed('#vis3', barChartSpec1);
+    vegaEmbed('#vis4', barChartSpec2);
+  </script>
+</body>
+
+</html>
